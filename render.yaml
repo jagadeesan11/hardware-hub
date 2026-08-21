@@ -8,7 +8,14 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    buildCommand: npm ci && npm run build
+    # --include=dev overrides the NODE_ENV=production set below for this one
+    # command. Without it, `npm ci` selectively drops devDependencies at
+    # install time (including @types/node, which tsconfig.json requires via
+    # `"types": ["node"]`) and the TypeScript build fails with
+    # `TS2688: Cannot find type definition file for 'node'` before it ever
+    # gets to your code. NODE_ENV=production is still what the running
+    # server sees — this only affects how the build step installs.
+    buildCommand: npm ci --include=dev && npm run build
     # `migrate deploy` (not `migrate dev`) applies committed migrations
     # non-interactively — safe to run on every boot, no-ops once caught up.
     # Render's free tier spins the service down after idle and rebuilds it
