@@ -1,0 +1,21 @@
+{
+  "name": "hardware-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "E-commerce storefront for a hardware shop — doors, PVC panels, paints, fittings.",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev": "concurrently --raw --kill-others-on-fail \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "db:migrate": "npm --prefix backend run prisma:migrate",
+    "db:studio": "npm --prefix backend run prisma:studio",
+    "predev": "node scripts/preflight.mjs",
+    "kill": "node scripts/kill-dev.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,0 +1,19 @@
+# Render blueprint for the API. Import this repo at https://render.com and Render
+# reads this file. DATABASE_URL is left unset on purpose — set it in the Render
+# dashboard so the connection string never lands in git.
+services:
+  - type: web
+    name: hardware-hub-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
