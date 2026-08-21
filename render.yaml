@@ -1,6 +1,7 @@
 # Render blueprint for the API. Import this repo at https://render.com and Render
-# reads this file. DATABASE_URL is left unset on purpose — set it in the Render
-# dashboard so the connection string never lands in git.
+# reads this file. DATABASE_URL, JWT_SECRET, CORS_ORIGIN and the Razorpay keys
+# are left unset on purpose — set them in the Render dashboard so nothing
+# sensitive lands in git.
 services:
   - type: web
     name: hardware-hub-api
@@ -8,12 +9,22 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm ci && npm run build
-    startCommand: npm run start
+    # `migrate deploy` (not `migrate dev`) applies committed migrations
+    # non-interactively — safe to run on every boot, no-ops once caught up.
+    # Render's free tier spins the service down after idle and rebuilds it
+    # from scratch on the next request, so this can't be a one-time step.
+    startCommand: npx prisma migrate deploy && npm run start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: CORS_ORIGIN
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
         sync: false
