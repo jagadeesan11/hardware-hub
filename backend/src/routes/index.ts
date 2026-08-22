@@ -7,6 +7,7 @@ import adminRoutes from './admin.routes.js';
 import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
 import paymentRoutes from './payment.routes.js';
+import settingsRoutes from './settings.routes.js';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get('/', (_req, res) => {
       health: ['GET /api/health', 'GET /api/health/db'],
       auth: ['POST /api/auth/register', 'POST /api/auth/login', 'GET /api/auth/me'],
       catalog: ['GET /api/categories', 'GET /api/products', 'GET /api/products/:slug'],
+      settings: ['GET /api/settings'],
       cart: [
         'GET /api/cart',
         'POST /api/cart/items',
@@ -44,6 +46,13 @@ router.get('/', (_req, res) => {
         'DELETE /api/admin/products/:id',
         'GET /api/admin/orders',
         'PATCH /api/admin/orders/:id/status',
+        'PUT /api/admin/settings',
+        'GET /api/admin/users',
+        'POST /api/admin/users',
+        'PUT /api/admin/users/:id',
+        'PATCH /api/admin/users/:id/role',
+        'POST /api/admin/users/:id/reset-password',
+        'DELETE /api/admin/users/:id',
       ],
     },
   });
@@ -53,6 +62,7 @@ router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/products', productRoutes);
+router.use('/settings', settingsRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/payment', paymentRoutes);

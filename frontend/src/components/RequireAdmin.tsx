@@ -18,7 +18,7 @@ export default function RequireAdmin({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (user.role !== 'ADMIN') {
+  if (user.role !== 'ADMIN' && user.role !== 'SHOP_OWNER') {
     return (
       <div className="py-16 text-center">
         <h1 className="text-2xl font-bold">Not available</h1>

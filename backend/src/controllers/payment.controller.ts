@@ -5,6 +5,7 @@ import { env } from '../config/env.js';
 import { ApiError } from '../lib/ApiError.js';
 import { decimalToNumber } from '../lib/serialize.js';
 import { getRazorpay, isValidPaymentSignature, toPaise } from '../lib/razorpay.js';
+import { formatOrderNumber } from '../lib/orderNumber.js';
 import type { CreatePaymentOrderInput, VerifyPaymentInput } from '../schemas/order.schema.js';
 
 const requireUserId = (req: Request): string => {
@@ -34,9 +35,10 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
   const razorpayOrder = await razorpay.orders.create({
     amount: amountInPaise,
     currency: 'INR',
-    // Lets us find our order from a Razorpay dashboard entry.
-    receipt: order.id,
-    notes: { orderId: order.id, userId },
+    // The human order number, not the cuid — this is what shows up in the
+    // Razorpay dashboard, so it should read the same as everywhere else.
+    receipt: formatOrderNumber(order.orderNumber),
+    notes: { orderId: order.id, orderNumber: formatOrderNumber(order.orderNumber), userId },
   });
 
   await prisma.order.update({
@@ -50,6 +52,7 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
     currency: 'INR',
     keyId: env.RAZORPAY_KEY_ID,
     orderId: order.id,
+    orderNumber: order.orderNumber,
   });
 };
 

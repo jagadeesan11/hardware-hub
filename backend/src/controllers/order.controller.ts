@@ -25,6 +25,9 @@ type OrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
 
 const serializeOrder = (order: OrderRow) => ({
   id: order.id,
+  // Raw number — the frontend formats it via the same convention as prices,
+  // through a shared formatOrderNumber() rather than a pre-baked string.
+  orderNumber: order.orderNumber,
   status: order.status,
   paymentStatus: order.paymentStatus,
   totalAmount: decimalToNumber(order.totalAmount),

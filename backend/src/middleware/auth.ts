@@ -43,9 +43,26 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction) =>
 /**
  * Must run after requireAuth. The role is read from the signed token, not from
  * anything the client sends, so it cannot be spoofed.
+ *
+ * Two admin tiers exist. ADMIN is the app owner — full control, including the
+ * category taxonomy and the shop's legal/contact details. SHOP_OWNER is the
+ * day-to-day operator — full control over products, stock and order
+ * fulfilment, but locked out of category structure and settings, which are
+ * gated separately by requireAppOwner below.
  */
-export const requireAdmin = (req: Request, _res: Response, next: NextFunction) => {
+export const requireShopStaff = (req: Request, _res: Response, next: NextFunction) => {
   if (!req.user) return next(ApiError.unauthorized());
-  if (req.user.role !== Role.ADMIN) return next(ApiError.forbidden('Admin access required'));
+  if (req.user.role !== Role.ADMIN && req.user.role !== Role.SHOP_OWNER) {
+    return next(ApiError.forbidden('Admin access required'));
+  }
+  next();
+};
+
+/** Stricter gate for app-owner-only actions: category CRUD, shop settings. */
+export const requireAppOwner = (req: Request, _res: Response, next: NextFunction) => {
+  if (!req.user) return next(ApiError.unauthorized());
+  if (req.user.role !== Role.ADMIN) {
+    return next(ApiError.forbidden('This action is restricted to the app owner'));
+  }
   next();
 };

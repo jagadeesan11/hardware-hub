@@ -18,15 +18,22 @@ import NotFoundPage from './pages/NotFoundPage';
 import { setUnauthorizedHandler } from './services/api';
 import { useAuthStore } from './store/authStore';
 import { useCartStore } from './store/cartStore';
+import { useSettingsStore } from './store/settingsStore';
 
 export default function App() {
   const { restore, logout, user } = useAuthStore();
   const { fetch: fetchCart, reset: resetCart } = useCartStore();
+  const fetchSettings = useSettingsStore((s) => s.fetch);
 
   // Verify any persisted token once, on mount.
   useEffect(() => {
     void restore();
   }, [restore]);
+
+  // Shop details are public — the footer needs them for every visitor.
+  useEffect(() => {
+    void fetchSettings();
+  }, [fetchSettings]);
 
   // A 401 from any request means the token died; drop the session and cart.
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as orderService from '../services/order.service';
-import { formatPrice } from '../lib/format';
+import { formatOrderNumber, formatPrice } from '../lib/format';
 import { OrderStatusBadge, PaymentStatusBadge } from '../components/StatusBadge';
 import type { Order } from '../types/order';
 
@@ -64,7 +64,7 @@ export default function OrdersPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold">Order {order.id.slice(0, 8)}</p>
+                  <p className="text-sm font-semibold">Order {formatOrderNumber(order.orderNumber)}</p>
                   <p className="mt-0.5 text-xs text-ink-500">
                     {new Date(order.createdAt).toLocaleDateString('en-IN', {
                       day: 'numeric',

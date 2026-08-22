@@ -28,6 +28,8 @@ export type OrderStatusEvent = {
 
 export type Order = {
   id: string;
+  /** Raw number — render with formatOrderNumber() from lib/format for the ODRH0000001 form. */
+  orderNumber: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number;
@@ -54,4 +56,5 @@ export type PaymentOrderResponse = {
   currency: string;
   keyId: string;
   orderId: string;
+  orderNumber: number;
 };

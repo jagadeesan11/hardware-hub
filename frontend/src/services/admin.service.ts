@@ -1,9 +1,10 @@
 import { apiFetch } from './api';
 import type { Order, OrderStatus } from '../types/order';
 import type { Product } from '../types/catalog';
+import type { Role } from '../types/auth';
 
 export type AdminOrder = Order & {
-  user: { id: string; name: string; email: string; phone: string | null };
+  user: { id: string; name: string; email: string | null; phone: string | null };
 };
 
 export type AdminStats = {
@@ -111,3 +112,43 @@ export const updateCategory = (
 
 export const deleteCategory = (id: string) =>
   apiFetch<{ ok: boolean }>(`/admin/categories/${id}`, { method: 'DELETE' });
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: Role;
+  createdAt: string;
+};
+
+export const getUsers = () => apiFetch<{ users: AdminUser[] }>('/admin/users').then((r) => r.users);
+
+export const createUser = (input: {
+  name: string;
+  identifier: string;
+  password: string;
+  role: Role;
+}) =>
+  apiFetch<{ user: AdminUser }>('/admin/users', { method: 'POST', body: input }).then(
+    (r) => r.user,
+  );
+
+export const updateUserRole = (id: string, role: Role) =>
+  apiFetch<{ user: AdminUser }>(`/admin/users/${id}/role`, { method: 'PATCH', body: { role } }).then(
+    (r) => r.user,
+  );
+
+export const updateUser = (id: string, input: { name: string; identifier: string }) =>
+  apiFetch<{ user: AdminUser }>(`/admin/users/${id}`, { method: 'PUT', body: input }).then(
+    (r) => r.user,
+  );
+
+export const resetUserPassword = (id: string, password: string) =>
+  apiFetch<{ ok: boolean }>(`/admin/users/${id}/reset-password`, {
+    method: 'POST',
+    body: { password },
+  });
+
+export const deleteUser = (id: string) =>
+  apiFetch<{ ok: boolean }>(`/admin/users/${id}`, { method: 'DELETE' });

@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const registerUser = useAuthStore((s) => s.register);
   const fetchCart = useCartStore((s) => s.fetch);
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' });
+  const [form, setForm] = useState({ name: '', identifier: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,10 +28,8 @@ export default function RegisterPage() {
     try {
       await registerUser({
         name: form.name,
-        email: form.email,
+        identifier: form.identifier.trim(),
         password: form.password,
-        // Empty string would fail the backend's 10-digit check; omit instead.
-        ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
       });
       await fetchCart();
       navigate('/', { replace: true });
@@ -58,54 +56,70 @@ export default function RegisterPage() {
         : 'border-slate-200 focus:border-brand-500'
     }`;
 
-  const fields = [
-    { key: 'name' as const, label: 'Full name', type: 'text', autoComplete: 'name', required: true },
-    { key: 'email' as const, label: 'Email', type: 'email', autoComplete: 'email', required: true },
-    {
-      key: 'phone' as const,
-      label: 'Phone (optional)',
-      type: 'tel',
-      autoComplete: 'tel',
-      required: false,
-    },
-    {
-      key: 'password' as const,
-      label: 'Password',
-      type: 'password',
-      autoComplete: 'new-password',
-      required: true,
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-sm py-8">
       <h1 className="text-2xl font-bold tracking-tight">Create account</h1>
       <p className="mt-1 text-sm text-ink-500">Save your cart and track orders.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        {fields.map((field) => (
-          <div key={field.key}>
-            <label htmlFor={field.key} className="mb-1 block text-sm font-medium text-ink-700">
-              {field.label}
-            </label>
-            <input
-              id={field.key}
-              type={field.type}
-              required={field.required}
-              autoComplete={field.autoComplete}
-              value={form[field.key]}
-              onChange={(e) => setField(field.key)(e.target.value)}
-              className={inputClass(field.key)}
-              {...(field.key === 'phone' ? { placeholder: '10-digit mobile' } : {})}
-            />
-            {fieldErrors[field.key] && (
-              <p className="mt-1 text-xs text-red-700">{fieldErrors[field.key]}</p>
-            )}
-            {field.key === 'password' && !fieldErrors.password && (
-              <p className="mt-1 text-xs text-ink-500">At least 8 characters.</p>
-            )}
-          </div>
-        ))}
+        <div>
+          <label htmlFor="name" className="mb-1 block text-sm font-medium text-ink-700">
+            Full name
+          </label>
+          <input
+            id="name"
+            type="text"
+            required
+            autoComplete="name"
+            value={form.name}
+            onChange={(e) => setField('name')(e.target.value)}
+            className={inputClass('name')}
+          />
+          {fieldErrors.name && <p className="mt-1 text-xs text-red-700">{fieldErrors.name}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="identifier" className="mb-1 block text-sm font-medium text-ink-700">
+            Email or phone number
+          </label>
+          <input
+            id="identifier"
+            type="text"
+            required
+            autoComplete="username"
+            placeholder="you@example.com or 9876543210"
+            value={form.identifier}
+            onChange={(e) => setField('identifier')(e.target.value)}
+            className={inputClass('identifier')}
+          />
+          {fieldErrors.identifier ? (
+            <p className="mt-1 text-xs text-red-700">{fieldErrors.identifier}</p>
+          ) : (
+            <p className="mt-1 text-xs text-ink-500">
+              Use whichever you&apos;ll remember — you&apos;ll sign in with the same one.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium text-ink-700">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={form.password}
+            onChange={(e) => setField('password')(e.target.value)}
+            className={inputClass('password')}
+          />
+          {fieldErrors.password ? (
+            <p className="mt-1 text-xs text-red-700">{fieldErrors.password}</p>
+          ) : (
+            <p className="mt-1 text-xs text-ink-500">At least 8 characters.</p>
+          )}
+        </div>
 
         {error && (
           <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

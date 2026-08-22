@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ApiRequestError } from '../services/api';
 import * as orderService from '../services/order.service';
 import { loadRazorpayScript, type RazorpaySuccess } from '../lib/razorpay';
-import { formatPrice } from '../lib/format';
+import { formatOrderNumber, formatPrice } from '../lib/format';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import type { ShippingAddress } from '../types/order';
@@ -115,11 +115,13 @@ export default function CheckoutPage() {
       amount: payment.amount,
       currency: payment.currency,
       name: 'Hardware Hub',
-      description: `Order ${orderId.slice(0, 8)}`,
+      description: `Order ${formatOrderNumber(payment.orderNumber)}`,
       order_id: payment.razorpayOrderId,
       prefill: {
         name: address.fullName,
-        email: user?.email,
+        // A phone-only account has no email; Razorpay's prefill wants
+        // undefined for "not provided", not null.
+        email: user?.email ?? undefined,
         contact: address.phone,
       },
       theme: { color: '#f97316' },

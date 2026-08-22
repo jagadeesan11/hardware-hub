@@ -4,7 +4,12 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 /** Dev-only credentials. Never seed these into a production database. */
-const ADMIN = { email: 'admin@hardwarehub.test', password: 'Admin@12345', name: 'Shop Admin' };
+const ADMIN = { email: 'admin@hardwarehub.test', password: 'Admin@12345', name: 'App Owner' };
+const SHOP_OWNER = {
+  email: 'shopowner@hardwarehub.test',
+  password: 'ShopOwner@12345',
+  name: 'Shop Owner',
+};
 const CUSTOMER = {
   email: 'customer@hardwarehub.test',
   password: 'Customer@12345',
@@ -433,6 +438,17 @@ async function main() {
   });
 
   await prisma.user.upsert({
+    where: { email: SHOP_OWNER.email },
+    update: { role: Role.SHOP_OWNER },
+    create: {
+      name: SHOP_OWNER.name,
+      email: SHOP_OWNER.email,
+      passwordHash: await bcrypt.hash(SHOP_OWNER.password, 12),
+      role: Role.SHOP_OWNER,
+    },
+  });
+
+  await prisma.user.upsert({
     where: { email: CUSTOMER.email },
     update: {},
     create: {
@@ -443,11 +459,12 @@ async function main() {
       role: Role.CUSTOMER,
     },
   });
-  console.log('  users:      2\n');
+  console.log('  users:      3\n');
 
   console.log('Test accounts (development only):');
-  console.log(`  admin     ${ADMIN.email} / ${ADMIN.password}`);
-  console.log(`  customer  ${CUSTOMER.email} / ${CUSTOMER.password}\n`);
+  console.log(`  app owner   ${ADMIN.email} / ${ADMIN.password}`);
+  console.log(`  shop owner  ${SHOP_OWNER.email} / ${SHOP_OWNER.password}`);
+  console.log(`  customer    ${CUSTOMER.email} / ${CUSTOMER.password}\n`);
   console.log('Done.');
 }
 

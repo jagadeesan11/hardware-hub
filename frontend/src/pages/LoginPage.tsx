@@ -9,7 +9,7 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login);
   const fetchCart = useCartStore((s) => s.fetch);
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ identifier: identifier.trim(), password });
       await fetchCart();
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -42,16 +42,16 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium text-ink-700">
-            Email
+          <label htmlFor="identifier" className="mb-1 block text-sm font-medium text-ink-700">
+            Email or phone number
           </label>
           <input
-            id="email"
-            type="email"
+            id="identifier"
+            type="text"
             required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className={inputClass}
           />
         </div>
@@ -92,12 +92,6 @@ export default function LoginPage() {
           Create one
         </Link>
       </p>
-
-      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-ink-500">
-        <p className="font-medium text-ink-700">Development test accounts</p>
-        <p className="mt-1">customer@hardwarehub.test / Customer@12345</p>
-        <p>admin@hardwarehub.test / Admin@12345</p>
-      </div>
     </div>
   );
 }

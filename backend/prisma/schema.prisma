@@ -10,8 +10,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/**
+ * ADMIN is the app owner — full control, including category structure and
+ * shop settings. SHOP_OWNER is the business's own day-to-day operator: full
+ * control over products, stock and orders, but not the category taxonomy or
+ * the shop's legal/contact details. See requireAppOwner in middleware/auth.ts.
+ */
 enum Role {
   CUSTOMER
+  SHOP_OWNER
   ADMIN
 }
 
@@ -30,12 +37,18 @@ enum PaymentStatus {
   REFUNDED
 }
 
+/**
+ * A user signs in with either email or phone, not necessarily both — so
+ * both columns are nullable-but-unique. A CHECK constraint (added by hand in
+ * the migration; Prisma has no declarative syntax for it) enforces that at
+ * least one is always present, so a row can never end up unreachable by login.
+ */
 model User {
   id           String   @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String?  @unique
   passwordHash String
-  phone        String?
+  phone        String?  @unique
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -118,8 +131,19 @@ model CartItem {
   @@map("cart_items")
 }
 
+/**
+ * `orderNumber` is a human-facing order number — displayed as ODRH0000001
+ * (see lib/orderNumber.ts). Backed by a Postgres SEQUENCE (order_number_seq,
+ * created by hand in the migration since Prisma has no declarative syntax for
+ * one), which is what makes it race-free: two checkouts finishing in the same
+ * instant can never receive the same number, the same guarantee the
+ * stock-decrement update relies on for concurrent buys. `id` remains the real
+ * primary key and the one used for routing/API lookups — `orderNumber` exists
+ * purely to be read by a human.
+ */
 model Order {
   id              String        @id @default(cuid())
+  orderNumber     Int           @unique @default(dbgenerated("nextval('order_number_seq')"))
   userId          String
   status          OrderStatus   @default(PENDING)
   totalAmount     Decimal       @db.Decimal(10, 2)
@@ -174,6 +198,29 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+/**
+ * Single row holding the shop's own business details — name, GST, contact,
+ * address. Enforced as a singleton by always reading/writing the fixed id
+ * "singleton" rather than a separate lookup table; there is exactly one shop.
+ * Shown publicly (footer, order pages) and editable only by an admin.
+ */
+model ShopSettings {
+  id           String   @id @default("singleton")
+  shopName     String
+  gstNumber    String?
+  phone        String
+  email        String
+  addressLine1 String
+  city         String
+  state        String
+  pincode      String
+  district     String?
+  landmark     String?
+  updatedAt    DateTime @updatedAt
+
+  @@map("shop_settings")
 }
 
 model Payment {

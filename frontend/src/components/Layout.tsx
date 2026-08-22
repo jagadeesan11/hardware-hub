@@ -2,11 +2,22 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useUiStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
+import { useSettingsStore } from '../store/settingsStore';
 
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/products', label: 'Products' },
 ];
+
+/** "Harikrishna Enterprises" -> "HE" — first letter of up to the first two words. */
+const brandInitials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase() || 'HH';
 
 /** Initial-in-circle, matching the "HH" logo mark. Name lives in the tooltip. */
 function AccountBadge({ name }: { name: string }) {
@@ -67,6 +78,11 @@ export default function Layout() {
   const { isMobileNavOpen, toggleMobileNav, closeMobileNav } = useUiStore();
   const { user, logout } = useAuthStore();
   const resetCart = useCartStore((s) => s.reset);
+  const settings = useSettingsStore((s) => s.settings);
+  // "Hardware Hub" is the fallback shown before settings load, or if an
+  // admin hasn't configured the shop yet — never a blank header.
+  const shopName = settings?.shopName ?? 'Hardware Hub';
+  const isShopStaff = user?.role === 'ADMIN' || user?.role === 'SHOP_OWNER';
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -82,9 +98,9 @@ export default function Layout() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2" onClick={closeMobileNav}>
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-              HH
+              {brandInitials(shopName)}
             </span>
-            <span className="text-lg font-semibold tracking-tight">Hardware Hub</span>
+            <span className="text-lg font-semibold tracking-tight">{shopName}</span>
           </Link>
 
           <nav className="hidden items-center gap-6 sm:flex">
@@ -116,7 +132,7 @@ export default function Layout() {
                 >
                   Orders
                 </NavLink>
-                {user.role === 'ADMIN' && (
+                {isShopStaff && (
                   <NavLink
                     to="/admin"
                     className={({ isActive }) =>
@@ -197,7 +213,7 @@ export default function Layout() {
                 >
                   Orders
                 </NavLink>
-                {user.role === 'ADMIN' && (
+                {isShopStaff && (
                   <NavLink
                     to="/admin"
                     onClick={closeMobileNav}
@@ -238,7 +254,31 @@ export default function Layout() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 text-sm text-ink-500">
-          &copy; {new Date().getFullYear()} Hardware Hub — doors, panels, paints &amp; fittings.
+          {settings ? (
+            <div className="flex flex-col gap-1">
+              <p className="font-medium text-ink-700">{settings.shopName}</p>
+              <p>
+                {settings.addressLine1}, {settings.city}
+                {settings.district ? `, ${settings.district}` : ''}, {settings.state} —{' '}
+                {settings.pincode}
+                {settings.landmark ? ` (${settings.landmark})` : ''}
+              </p>
+              <p className="flex flex-wrap gap-x-4">
+                <a href={`tel:+91${settings.phone}`} className="hover:text-ink-900">
+                  {settings.phone}
+                </a>
+                <a href={`mailto:${settings.email}`} className="hover:text-ink-900">
+                  {settings.email}
+                </a>
+                {settings.gstNumber && <span>GSTIN: {settings.gstNumber}</span>}
+              </p>
+              <p className="mt-1 text-xs text-ink-500">
+                &copy; {new Date().getFullYear()} {settings.shopName}
+              </p>
+            </div>
+          ) : (
+            <p>&copy; {new Date().getFullYear()} {shopName} — doors, panels, paints &amp; fittings.</p>
+          )}
         </div>
       </footer>
     </div>

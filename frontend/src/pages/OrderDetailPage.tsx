@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import * as orderService from '../services/order.service';
-import { formatPrice } from '../lib/format';
+import { formatOrderNumber, formatPrice } from '../lib/format';
 import OrderTracker from '../components/OrderTracker';
+import { useSettingsStore } from '../store/settingsStore';
 import type { Order, OrderStatus, PaymentStatus } from '../types/order';
 
 const statusTone: Record<OrderStatus, string> = {
@@ -22,6 +23,7 @@ const paymentTone: Record<PaymentStatus, string> = {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const shopSettings = useSettingsStore((s) => s.settings);
   const [searchParams] = useSearchParams();
   const justPaid = searchParams.get('paid') === '1';
 
@@ -77,7 +79,9 @@ export default function OrderDetailPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Order {order.id.slice(0, 8)}</h1>
+          <h1 className="text-xl font-bold tracking-tight">
+            Order {formatOrderNumber(order.orderNumber)}
+          </h1>
           <p className="mt-1 text-sm text-ink-500">
             Placed {new Date(order.createdAt).toLocaleString('en-IN')}
           </p>
@@ -166,6 +170,22 @@ export default function OrderDetailPage() {
               {address.phone}
             </address>
           </div>
+
+          {shopSettings && (
+            <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm">
+              <h2 className="text-sm font-semibold">Sold by</h2>
+              <p className="mt-2 font-medium text-ink-900">{shopSettings.shopName}</p>
+              <p className="mt-1 leading-relaxed text-ink-500">
+                {shopSettings.addressLine1}, {shopSettings.city}
+                {shopSettings.district ? `, ${shopSettings.district}` : ''}, {shopSettings.state}{' '}
+                — {shopSettings.pincode}
+              </p>
+              <p className="mt-1 text-ink-500">{shopSettings.phone}</p>
+              {shopSettings.gstNumber && (
+                <p className="mt-1 text-xs text-ink-500">GSTIN: {shopSettings.gstNumber}</p>
+              )}
+            </div>
+          )}
 
           {order.paymentStatus !== 'PAID' && order.status === 'PENDING' && (
             <Link

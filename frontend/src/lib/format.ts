@@ -19,6 +19,13 @@ const inrWithPaise = new Intl.NumberFormat('en-IN', {
 export const formatPrice = (value: number): string =>
   Number.isInteger(value) ? inr.format(value) : inrWithPaise.format(value);
 
+/**
+ * Mirrors backend/src/lib/orderNumber.ts exactly — both sides render the same
+ * string from the same raw integer, rather than the backend pre-baking it.
+ */
+export const formatOrderNumber = (orderNumber: number): string =>
+  `ODRH${String(orderNumber).padStart(7, '0')}`;
+
 export const stockLabel = (stockQty: number): { text: string; tone: 'ok' | 'low' | 'out' } => {
   if (stockQty <= 0) return { text: 'Out of stock', tone: 'out' };
   if (stockQty <= 10) return { text: `Only ${stockQty} left`, tone: 'low' };
