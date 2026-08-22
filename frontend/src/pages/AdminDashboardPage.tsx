@@ -801,7 +801,7 @@ const EMPTY_SETTINGS_FORM: SettingsFormState = {
 };
 
 function SettingsTab({ readOnly }: { readOnly: boolean }) {
-  const { settings, fetch: refetchSettings } = useSettingsStore();
+  const { settings, isLoading: isLoadingSettings, fetch: refetchSettings } = useSettingsStore();
   const [form, setForm] = useState<SettingsFormState>(EMPTY_SETTINGS_FORM);
   // Tracks whether the form has been populated from the loaded settings yet,
   // so a background refetch after saving doesn't clobber what's being typed.
@@ -906,7 +906,12 @@ function SettingsTab({ readOnly }: { readOnly: boolean }) {
     </div>
   );
 
-  if (!hydrated && !settings) {
+  // Driven by the store's own isLoading, not the local `hydrated` flag —
+  // `hydrated` only ever flips true once real settings exist, so on a fresh
+  // database (nothing configured yet, settings genuinely null) it never
+  // would, leaving this stuck on "Loading…" forever even after the fetch
+  // had already finished and correctly determined there's nothing there.
+  if (isLoadingSettings) {
     return <p className="py-10 text-center text-sm text-ink-500">Loading shop settings…</p>;
   }
 
